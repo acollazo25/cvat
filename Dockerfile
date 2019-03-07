@@ -6,17 +6,17 @@ ARG no_proxy
 ARG socks_proxy
 
 ENV TERM=xterm \
-    http_proxy=${http_proxy}   \
-    https_proxy=${https_proxy} \
-    no_proxy=${no_proxy} \
-    socks_proxy=${socks_proxy}
+    http_proxy=  \
+    https_proxy= \
+    no_proxy= \
+    socks_proxy=
 
 ENV LANG='C.UTF-8'  \
     LC_ALL='C.UTF-8'
 
 ARG USER
 ARG DJANGO_CONFIGURATION
-ENV DJANGO_CONFIGURATION=${DJANGO_CONFIGURATION}
+ENV DJANGO_CONFIGURATION=production
 
 # Install necessary apt packages
 RUN apt-get update && \
@@ -47,10 +47,10 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Add a non-root user
-ENV USER=${USER}
-ENV HOME /home/${USER}
+ENV USER=django
+ENV HOME /home/django
 WORKDIR ${HOME}
-RUN adduser --shell /bin/bash --disabled-password --gecos "" ${USER}
+RUN adduser --shell /bin/bash --disabled-password --gecos "" django
 
 COPY components /tmp/components
 
@@ -70,14 +70,14 @@ RUN if [ "$CUDA_SUPPORT" = "yes" ]; then \
 
 # Tensorflow annotation support
 ARG TF_ANNOTATION
-ENV TF_ANNOTATION=${TF_ANNOTATION}
+ENV TF_ANNOTATION=no
 ENV TF_ANNOTATION_MODEL_PATH=${HOME}/rcnn/inference_graph
-RUN if [ "$TF_ANNOTATION" = "yes" ]; then \
+RUN if [ "no" = "yes" ]; then \
         bash -i /tmp/components/tf_annotation/install.sh; \
     fi
 
 ARG WITH_TESTS
-RUN if [ "$WITH_TESTS" = "yes" ]; then \
+RUN if [ "no" = "yes" ]; then \
         wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
         echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | tee /etc/apt/sources.list.d/google-chrome.list && \
         wget -qO- https://deb.nodesource.com/setup_9.x | bash - && \
@@ -102,7 +102,7 @@ RUN if [ "$WITH_TESTS" = "yes" ]; then \
 # Install and initialize CVAT, copy all necessary files
 COPY cvat/requirements/ /tmp/requirements/
 COPY supervisord.conf mod_wsgi.conf wait-for-it.sh manage.py ${HOME}/
-RUN  pip3 install --no-cache-dir -r /tmp/requirements/${DJANGO_CONFIGURATION}.txt
+RUN  pip3 install --no-cache-dir -r /tmp/requirements/production.txt
 
 # Install git application dependencies
 RUN apt-get update && \
