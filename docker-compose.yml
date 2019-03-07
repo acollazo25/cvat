@@ -31,24 +31,13 @@ services:
 
   cvat:
     container_name: cvat
-    image: cvat
+    image: ender25/cvat:latest
     restart: always
     depends_on:
       - cvat_redis
       - cvat_db
     ports:
       - "8080:8080"
-    build:
-      context: .
-      args:
-        http_proxy:
-        https_proxy:
-        no_proxy:
-        socks_proxy:
-        TF_ANNOTATION: "no"
-        USER: "django"
-        DJANGO_CONFIGURATION: "production"
-        WITH_TESTS: "no"
     environment:
       DJANGO_MODWSGI_EXTRA_ARGS: ""
     volumes:
